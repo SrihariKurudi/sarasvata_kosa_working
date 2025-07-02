@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Sanskrit Dictionary</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; background: #f7f7f7; }
+    .tabs { margin-bottom: 1em; }
+    .tab-btn {
+      padding: 0.5em 1em; margin-right: 0.5em;
+      background-color: #ddd; border: none;
+      border-radius: 5px; cursor: pointer;
+    }
+    .tab-btn.active { background-color: #4a90e2; color: white; }
+    .entry {
+      background: white; padding: 1em; margin-bottom: 1em;
+      border-left: 5px solid #4a90e2; border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .headword { font-size: 1.3em; font-weight: bold; }
+    .sanskrit { font-size: 1.1em; color: #00796b; margin-top: 0.2em; }
+    .example, .notes { font-size: 0.95em; margin-top: 0.3em; }
+    hr { border: none; border-top: 1px dashed #ccc; margin: 0.5em 0; }
+  </style>
+</head>
+<body>
+
+<h1>📘 Live English–Sanskrit Dictionary</h1>
+<div class="tabs" id="tabs"></div>
+<div id="dictionary"></div>
+
+<script>
+const sheetConfig = {
+  "भैषज्यम्": "https://docs.google.com/spreadsheets/d/1Cpr17CVMEdyH5vwbC8qMS4o9_vPmoxTGPSGhDviwTwA/gviz/tq?tqx=out:json&sheet=भैषज्यम्",
+  "माहानसिकम्": "https://docs.google.com/spreadsheets/d/1Cpr17CVMEdyH5vwbC8qMS4o9_vPmoxTGPSGhDviwTwA/gviz/tq?tqx=out:json&sheet=माहानसिकम्"
+};
+
+function renderTabs() {
+  const tabBar = document.getElementById('tabs');
+  Object.keys(sheetConfig).forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.className = 'tab-btn';
+    if (i === 0) btn.classList.add('active');
+    btn.onclick = () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      fetchSheet(sheetConfig[label]);
+    };
+    tabBar.appendChild(btn);
+  });
+}
+
+function fetchSheet(url) {
+  fetch(url)
+    .then(res => res.text())
+    .then(text => {
+      // Try to extract JSON safely
+      let json;
+      try {
+        json = JSON.parse(text.match(/{.*}/s)[0]);
+      } catch (err) {
+        console.error("❌ JSON parse failed:", err);
+        document.getElementById('dictionary').innerHTML = "<p style='color:red;'>❌ JSON parsing failed.</p>";
+        return;
+      }
+
+      let cols = json.table.cols.map(c => c.label);
+      const rawRows = json.table.rows;
+
+      // Detect if first row is actual header
+      const firstRow = rawRows[0]?.c?.map(c => c?.v?.trim?.());
+      const isHeaderRow = firstRow?.every(v => typeof v === 'string' && /^[A-Za-z]/.test(v));
+
+      if ((!cols[0] || cols.every(l => l === "")) && isHeaderRow) {
+        cols = firstRow;
+        rawRows.shift(); // Remove the header row from data
+        console.warn("⚠️ Used first row as header:", cols);
+      }
+
+      // Final parsed data
+      const rows = rawRows.map(r => {
+        const obj = {};
+        r.c.forEach((cell, i) => {
+          obj[cols[i]] = cell ? cell.v : "";
+        });
+        return obj;
+      });
+
+      console.log("✅ Parsed dictionary rows:", rows);
+      renderEntries(rows);
+    })
+    .catch(err => {
+      console.error("❌ Fetch error:", err);
+      document.getElementById('dictionary').innerHTML = "<p style='color:red;'>❌ Failed to load data. Check sheet visibility or format.</p>";
+    });
+}
+
+
+function renderEntries(data) {
+  const container = document.getElementById('dictionary');
+  container.innerHTML = '';
+
+  // Group by English headword
+  const grouped = {};
+  data.forEach(entry => {
+    const key = entry.English?.trim();
+    if (!key) return;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(entry);
+  });
+
+  for (let headword in grouped) {
+    const group = grouped[headword];
+    const div = document.createElement('div');
+    div.className = 'entry';
+    div.innerHTML = `<div class="headword">${headword}</div>`;
+    group.forEach((e, i) => {
+      div.innerHTML += `
+        <div class="sanskrit">${e.Sanskrit}</div>
+        ${e.Example ? `<div class="example">📘 ${e.Example}</div>` : ''}
+        ${e.Notes ? `<div class="notes">📝 ${e.Notes}</div>` : ''}
+        ${i < group.length - 1 ? `<hr>` : ''}
+      `;
+    });
+    container.appendChild(div);
+  }
+}
+
+renderTabs();
+fetchSheet(Object.values(sheetConfig)[0]); // Default tab
+</script>
+
+</body>
+</html>
