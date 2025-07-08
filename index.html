@@ -33,10 +33,9 @@
 
 <script>
 const sheetConfig = {
-  "भैषज्यम्": "https://docs.google.com/spreadsheets/d/1KplgNJU8_JeRnAY0bP0FR2WAB_q8OGxdEviCkewJNA0/gviz/tq?tqx=out:json&sheet=भैषज्यम्",
-  "माहानसिकम्": "https://docs.google.com/spreadsheets/d/1Cpr17CVMEdyH5vwbC8qMS4o9_vPmoxTGPSGhDviwTwA/gviz/tq?tqx=out:json&sheet=माहानसिकम्"
-  "सङ्गीतादि": "https://docs.google.com/spreadsheets/d/1Cpr17CVMEdyH5vwbC8qMS4o9_vPmoxTGPSGhDviwTwA/gviz/tq?tqx=out:json&sheet=सङ्गीतादि"
+  "भैषज्यम्": "https://docs.google.com/spreadsheets/d/1KplgNJU8_JeRnAY0bP0FR2WAB_q8OGxdEviCkewJNA0/gviz/tq?tqx=out:json&sheet=भैषज्यम्"
 };
+
 
 function renderTabs() {
   const tabBar = document.getElementById('tabs');
@@ -58,30 +57,20 @@ function fetchSheet(url) {
   fetch(url)
     .then(res => res.text())
     .then(text => {
-      // Try to extract JSON safely
-      let json;
-      try {
-        json = JSON.parse(text.match(/{.*}/s)[0]);
-      } catch (err) {
-        console.error("❌ JSON parse failed:", err);
-        document.getElementById('dictionary').innerHTML = "<p style='color:red;'>❌ JSON parsing failed.</p>";
-        return;
-      }
+      const json = JSON.parse(text.match(/{.*}/s)[0]);
 
       let cols = json.table.cols.map(c => c.label);
       const rawRows = json.table.rows;
 
-      // Detect if first row is actual header
       const firstRow = rawRows[0]?.c?.map(c => c?.v?.trim?.());
-      const isHeaderRow = firstRow?.every(v => typeof v === 'string' && /^[A-Za-z]/.test(v));
+      const isHeaderRow = firstRow?.every(v => typeof v === 'string' && v.length > 0);
 
       if ((!cols[0] || cols.every(l => l === "")) && isHeaderRow) {
         cols = firstRow;
-        rawRows.shift(); // Remove the header row from data
-        console.warn("⚠️ Used first row as header:", cols);
+        rawRows.shift();
+        console.warn("⚠️ Using row 1 as header:", cols);
       }
 
-      // Final parsed data
       const rows = rawRows.map(r => {
         const obj = {};
         r.c.forEach((cell, i) => {
@@ -90,7 +79,6 @@ function fetchSheet(url) {
         return obj;
       });
 
-      console.log("✅ Parsed dictionary rows:", rows);
       renderEntries(rows);
     })
     .catch(err => {
@@ -104,10 +92,10 @@ function renderEntries(data) {
   const container = document.getElementById('dictionary');
   container.innerHTML = '';
 
-  // Group by English headword
+  // Group by आङ्ग्लपदम् (Angla word)
   const grouped = {};
   data.forEach(entry => {
-    const key = entry.English?.trim();
+    const key = entry["आङ्ग्लपदम्"]?.trim();
     if (!key) return;
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(entry);
@@ -120,9 +108,9 @@ function renderEntries(data) {
     div.innerHTML = `<div class="headword">${headword}</div>`;
     group.forEach((e, i) => {
       div.innerHTML += `
-        <div class="sanskrit">${e.Sanskrit}</div>
-        ${e.Example ? `<div class="example">📘 ${e.Example}</div>` : ''}
-        ${e.Notes ? `<div class="notes">📝 ${e.Notes}</div>` : ''}
+        <div class="sanskrit">${e["संस्कृतपदम्"] || ""}</div>
+        ${e["उदाहरणवाक्यम्"] ? `<div class="example">📘 ${e["उदाहरणवाक्यम्"]}</div>` : ''}
+        ${e["टिप्पणं/पदान्तरङ्गम्"] ? `<div class="notes">📝 ${e["टिप्पणं/पदान्तरङ्गम्"]}</div>` : ''}
         ${i < group.length - 1 ? `<hr>` : ''}
       `;
     });
