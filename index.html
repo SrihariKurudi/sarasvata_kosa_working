@@ -58,28 +58,21 @@ function fetchSheet(url) {
     .then(res => res.text())
     .then(text => {
       const json = JSON.parse(text.match(/{.*}/s)[0]);
+      const rows = json.table.rows;
 
-      let cols = json.table.cols.map(c => c.label);
-      const rawRows = json.table.rows;
+      // Extract headers from columns C, D, E, F
+      const headers = rows[0].c.slice(2, 6).map(cell => cell?.v?.trim());
+      console.log("🔍 Using headers:", headers);
 
-      const firstRow = rawRows[0]?.c?.map(c => c?.v?.trim?.());
-      const isHeaderRow = firstRow?.every(v => typeof v === 'string' && v.length > 0);
-
-      if ((!cols[0] || cols.every(l => l === "")) && isHeaderRow) {
-        cols = firstRow;
-        rawRows.shift();
-        console.warn("⚠️ Using row 1 as header:", cols);
-      }
-
-      const rows = rawRows.map(r => {
+      const data = rows.slice(1).map(row => {
         const obj = {};
-        r.c.forEach((cell, i) => {
-          obj[cols[i]] = cell ? cell.v : "";
+        row.c.slice(2, 6).forEach((cell, i) => {
+          obj[headers[i]] = cell?.v || "";
         });
         return obj;
       });
 
-      renderEntries(rows);
+      renderEntries(data);
     })
     .catch(err => {
       console.error("❌ Fetch error:", err);
@@ -92,13 +85,12 @@ function renderEntries(data) {
   const container = document.getElementById('dictionary');
   container.innerHTML = '';
 
-  // Group by आङ्ग्लपदम् (Angla word)
   const grouped = {};
-  data.forEach(entry => {
-    const key = entry["आङ्ग्लपदम्"]?.trim();
+  data.forEach(row => {
+    const key = row["आङ्ग्लपदम्"]?.trim();
     if (!key) return;
     if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(entry);
+    grouped[key].push(row);
   });
 
   for (let headword in grouped) {
