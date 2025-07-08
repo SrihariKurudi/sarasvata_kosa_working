@@ -106,8 +106,8 @@ function renderEntries(data) {
       
       div.innerHTML += `
         <div class="sanskrit">${sanskrit}</div>
-        ${notes ? `<div class="notes">📘पदान्तरङ्गम् <br> ${notes}</div>` : ''}
-        ${example ? `<div class="example">📝उदाहरणम् <br> ${example}</div>` : ''}
+        ${notes ? `<div class="notes">📘<b>पदान्तरङ्गम्</b><br> ${notes}</div>` : ''}
+        ${example ? `<div class="example">📝<p style="font-style: normal;"><b>उदाहरणम्<b></p><br> ${example}</div>` : ''}
         ${i < group.length - 1 ? `<hr>` : ''}
       `;
     });
