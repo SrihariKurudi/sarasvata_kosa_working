@@ -19,7 +19,7 @@
     }
     .headword { font-size: 1.3em; font-weight: bold; }
     .sanskrit { font-size: 1.1em; color: #00796b; margin-top: 0.2em; }
-    .example, .notes { font-size: 0.95em; margin-top: 0.5em; line-height: 1.5; }
+    .example, .notes { font-size: 0.95em; margin-top: 0.5em; line-height: 1.5; padding: 2em; }
     hr { border: none; border-top: 1px dashed #ccc; margin: 0.5em 0; }
   </style>
 </head>
@@ -103,12 +103,11 @@ function renderEntries(data) {
       const notes = (e["टिप्पणं/पदान्तरङ्गम्"] || "").replace(/\n/g, "<br>");
       const example = (e["उदाहरणवाक्यम्"] || "").replace(/\n/g, "<br>");
 
-      div.innerHTML += `
-        <div class="sanskrit">${sanskrit}</div>
-        ${notes ? `<div class="example"><b>📘 पदान्तरङ्गम्</b><br>${notes}</div>` : ''}
-        ${example ? `<div class="notes"><b>📝 उदाहरणम्</b><br><i>${example}</i></div>` : ''}
-        ${i < group.length - 1 ? `<hr>` : ''}
-      `;
+    div.innerHTML += `
+      ${notes ? `<div><b>📘 पदान्तरङ्गम्</b><div class="example">${notes}</div></div>` : ''}
+      ${example ? `<div><b>📝 उदाहरणम्</b><div class="notes"><i>${example}</i></div></div>` : ''}
+`   ;
+
     });
     container.appendChild(div);
   }
