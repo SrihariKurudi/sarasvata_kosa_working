@@ -99,10 +99,14 @@ function renderEntries(data) {
     div.className = 'entry';
     div.innerHTML = `<div class="headword">${headword}</div>`;
     group.forEach((e, i) => {
+      const sanskrit = (e["संस्कृतपदम्"] || "").replace(/\n/g, "<br>");
+      const example = (e["उदाहरणवाक्यम्"] || "").replace(/\n/g, "<br>");
+      const notes = (e["टिप्पणं/पदान्तरङ्गम्"] || "").replace(/\n/g, "<br>");
+      
       div.innerHTML += `
-        <div class="sanskrit">${e["संस्कृतपदम्"] || ""}</div>
-        ${e["उदाहरणवाक्यम्"] ? `<div class="example">📘 ${e["उदाहरणवाक्यम्"]}</div>` : ''}
-        ${e["टिप्पणं/पदान्तरङ्गम्"] ? `<div class="notes">📝 ${e["टिप्पणं/पदान्तरङ्गम्"]}</div>` : ''}
+        <div class="sanskrit">${sanskrit}</div>
+        ${example ? `<div class="example">📘 ${example}</div>` : ''}
+        ${notes ? `<div class="notes">📝 ${notes}</div>` : ''}
         ${i < group.length - 1 ? `<hr>` : ''}
       `;
     });
