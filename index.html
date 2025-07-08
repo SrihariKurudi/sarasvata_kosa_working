@@ -19,7 +19,8 @@
     }
     .headword { font-size: 1.3em; font-weight: bold; }
     .sanskrit { font-size: 1.1em; color: #00796b; margin-top: 0.2em; }
-    .example, .notes { font-size: 0.95em; margin-top: 0.3em; }
+    .notes { font-size: 0.95em; margin-top: 0.3em; }
+    .example { font-size: 0.95em; font-style:italic; margin-top: 0.3em; }
     hr { border: none; border-top: 1px dashed #ccc; margin: 0.5em 0; }
   </style>
 </head>
@@ -105,8 +106,8 @@ function renderEntries(data) {
       
       div.innerHTML += `
         <div class="sanskrit">${sanskrit}</div>
-        ${notes ? `<div class="notes">📘 ${notes}</div>` : ''}
-        ${example ? `<div class="example">📝 ${example}</div>` : ''}
+        ${notes ? `<div class="notes">📘पदान्तरङ्गम् <br> ${notes}</div>` : ''}
+        ${example ? `<div class="example">📝उदाहरणम् <br> ${example}</div>` : ''}
         ${i < group.length - 1 ? `<hr>` : ''}
       `;
     });
