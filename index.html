@@ -107,7 +107,7 @@ function renderEntries(data) {
       div.innerHTML += `
         <div class="sanskrit">${sanskrit}</div>
         ${notes ? `<div class="notes">📘<b>पदान्तरङ्गम्</b><br> ${notes}</div>` : ''}
-        ${example ? `<div class="example">📝<b style="font-style: normal;">उदाहरणम्</b> <br> ${example}</div>` : ''}
+        ${example ? `<div class="example">📝<i style="font-style: normal; font-weight: bold">उदाहरणम्</i> <br> ${example}</div>` : ''}
         ${i < group.length - 1 ? `<hr>` : ''}
       `;
     });
