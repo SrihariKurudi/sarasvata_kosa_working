@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Sanskrit Dictionary</title>
+  <link rel="icon" type="image/svg+xml" href="sarasvata_logo.svg" />
+  <style>
+    body { padding-top: 80px; font-family: sans-serif; margin: 2em; background: #f7f7f7; }
+    .tabs { margin-bottom: 1em; }
+    .tab-btn {
+      font-family: 'Noto Serif Devanagari', serif;
+      font-weight: bold; font-size: large;
+      padding: 0.5em 1em; margin-right: 0.5em;
+      background-color: #ddd; border: none;
+      border-radius: 5px; cursor: pointer;
+    }
+    .tab-btn.active { background-color: #4a90e2; color: white; }
+    .entry {
+      background: white; padding: 1em; margin-bottom: 1em;
+      border-left: 5px solid #4a90e2; border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .headword { font-family: 'Lucida Console', Monaco, monospace; font-size: 1.3em; }
+    .sanskrit { font-family: 'Noto Serif Devanagari', serif; font-size: 1.5em; color: #00008B; margin-top: 0.2em; font-weight: bold; }
+    .example, .notes { padding-left: 2em; margin-top: 0.3em; line-height: 1.6; }
+    hr { border: none; border-top: 1px dashed #ccc; margin: 0.5em 0; }
+  </style>
+</head>
+<body>
+<header style="
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background-color: #FDF6D3;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0 1em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 1000;
+">  <a href="https://sarasvatam.org/"><img src="sarasvata_logo.svg" alt="Sarasvata Logo" style="height: 60px;" /></a>
+  <h1 style="margin: 0; font-family: 'Noto Serif Devanagari', serif; color:#8B4513">सारस्वतकोशः – व्यावहारिकम्</h1>
+</header>
+
+<input type="text" id="searchBox" placeholder="अन्विष्यताम्..." oninput="filterEntries()" style="padding:0.5em; width: 60%; font-size:1em; margin-bottom: 1em;" />
+<div class="tabs" id="tabs"></div>
+<div id="dictionary"></div>
+
+<script>
+const sheetConfig = {
+  "भैषज्यम्": "https://docs.google.com/spreadsheets/d/1KplgNJU8_JeRnAY0bP0FR2WAB_q8OGxdEviCkewJNA0/gviz/tq?tqx=out:json&sheet=भैषज्यम्",
+  "माहानसम्": "https://docs.google.com/spreadsheets/d/1KplgNJU8_JeRnAY0bP0FR2WAB_q8OGxdEviCkewJNA0/gviz/tq?tqx=out:json&sheet=माहानसम्",
+  "सङ्गीतादिः": "https://docs.google.com/spreadsheets/d/1KplgNJU8_JeRnAY0bP0FR2WAB_q8OGxdEviCkewJNA0/gviz/tq?tqx=out:json&sheet=सङ्गीतादिः"
+};
+
+
+function renderTabs() {
+  const tabBar = document.getElementById('tabs');
+  Object.keys(sheetConfig).forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.className = 'tab-btn';
+    if (i === 0) btn.classList.add('active');
+    btn.onclick = () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      fetchSheet(sheetConfig[label]);
+    };
+    tabBar.appendChild(btn);
+  });
+}
+
+function fetchSheet(url) {
+  fetch(url)
+    .then(res => res.text())
+    .then(text => {
+      const json = JSON.parse(text.match(/{.*}/s)[0]);
+      const rows = json.table.rows;
+
+      // Extract headers from columns C, D, E, F
+      const headers = rows[0].c.slice(2, 6).map(cell => cell?.v?.trim());
+      console.log("🔍 Using headers:", headers);
+
+      const data = rows.slice(1).map(row => {
+        const obj = {};
+        row.c.slice(2, 6).forEach((cell, i) => {
+          obj[headers[i]] = cell?.v || "";
+        });
+        return obj;
+      });
+
+      renderEntries(data);
+    })
+    .catch(err => {
+      console.error("❌ Fetch error:", err);
+      document.getElementById('dictionary').innerHTML = "<p style='color:red;'>❌ Failed to load data. Check sheet visibility or format.</p>";
+    });
+}
+
+
+function renderEntries(data) {
+  const container = document.getElementById('dictionary');
+  container.innerHTML = '';
+
+  const grouped = {};
+  data.forEach(row => {
+    const key = row["आङ्ग्लपदम्"]?.trim();
+    if (!key) return;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(row);
+  });
+
+  for (let headword in grouped) {
+    const group = grouped[headword];
+    const div = document.createElement('div');
+    div.className = 'entry';
+    div.innerHTML = `<div class="headword">${headword}</div>`;
+
+    group.forEach((e, i) => {
+      const sanskrit = (e["संस्कृतपदम्"] || "").replace(/\n/g, "<br>");
+      const notes = (e["टिप्पणं/पदान्तरङ्गम्"] || "").replace(/\n/g, "<br>");
+      const example = (e["उदाहरणवाक्यम्"] || "").replace(/\n/g, "<br>");
+
+      div.innerHTML += `
+        <div class="sanskrit">${sanskrit}</div>
+        ${notes ? `<div><b>📘 पदान्तरङ्गम्</b><div class="notes">${notes}</div></div>` : ''}
+        ${example ? `<div><b>📝 उदाहरणम्</b><div class="example"><i>${example}</i></div></div>` : ''}
+        ${i < group.length - 1 ? `<hr>` : ''}
+      `;
+    });
+
+    container.appendChild(div);
+  }
+}
+  
+function filterEntries() {
+  const query = document.getElementById('searchBox').value.toLowerCase();
+  const entries = document.querySelectorAll('.entry');
+  entries.forEach(entry => {
+    const text = entry.innerText.toLowerCase();
+    entry.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+
+renderTabs();
+fetchSheet(Object.values(sheetConfig)[0]); // Default tab
+</script>
+
+</body>
+</html>
