@@ -1,256 +1,158 @@
 <!DOCTYPE html>
-<html lang="sa">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>सारस्वतकोशः</title>
-  <link rel="icon" type="image/svg+xml" href="sarasvata_logo.svg" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+  <title>📘 सारस्वतकोशः – English–Sanskrit Dictionary</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Roboto Mono', monospace;
-      background: #fdfaf1;
-      padding-top: 120px;
-    }
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: #FDF6D3;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      transition: all 0.3s ease;
-    }
-    .header-inner {
-      max-width: 1000px;
-      margin: auto;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      padding: 0.6em 1em;
-      transition: all 0.3s ease;
-    }
-    header.scrolled .header-inner {
-      justify-content: space-between;
-    }
-    .logo {
-      height: 60px;
-      transition: height 0.3s ease;
-    }
-    header.scrolled .logo {
-      height: 40px;
-    }
-    .site-title {
-      margin: 0 1em;
-      font-size: 1.6em;
-      color: #8B4513;
-      transition: font-size 0.3s ease;
-      font-family: 'Noto Serif Devanagari', serif;
-    }
-    header.scrolled .site-title {
-      font-size: 1.2em;
-    }
-    #searchBox {
-      padding: 0.5em 1em;
-      font-size: 1em;
-      margin-left: auto;
-      margin-top: 0.5em;
-      border: 1px solid #ccc;
-      border-radius: 20px;
-      transition: width 0.3s ease;
-      background: #fff8dc;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-    }
-    header.scrolled #searchBox {
-      width: 180px;
-    }
-    .tabs {
-      display: flex;
-      justify-content: center;
-      gap: 0.5em;
-      flex-wrap: wrap;
-      margin-top: 0.8em;
-      font-family: 'Noto Serif Devanagari', serif;
-    }
-    header.scrolled .tabs {
-      margin-top: 0;
-      flex-grow: 1;
-      justify-content: center;
-    }
+    body { font-family: "Segoe UI", sans-serif; margin: 2em; background: #f7f7f7; }
+    h1 { margin-bottom: 1em; }
+
+    .tabs, .upload-section { margin-bottom: 1em; }
     .tab-btn {
-      padding: 0.4em 0.8em;
-      background-color: #eee6ba;
-      color: #4e2c0a;
-      border: 1px solid #e1d7ab;
-      border-radius: 4px;
+      padding: 0.5em 1em;
+      margin-right: 0.5em;
+      background-color: #ddd;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
-      transition: background-color 0.2s;
-      font-family: 'Noto Serif Devanagari', serif;
     }
     .tab-btn.active {
-      background-color: #8B4513;
+      background-color: #4a90e2;
       color: white;
     }
+
     .entry {
       background: white;
-      margin: 1em auto;
       padding: 1em;
-      border-left: 5px solid #8B4513;
+      margin-bottom: 1em;
+      border-left: 5px solid #4a90e2;
       border-radius: 8px;
-      max-width: 800px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .headword {
-      font-size: 1.3em;
-      font-weight: bold;
-      color: #4e2c0a;
-    }
-    .sanskrit {
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #083b6d;
-      margin-top: 0.4em;
-      font-family: 'Noto Serif Devanagari', serif;
-    }
-    .notes, .example {
-      padding-left: 2em;
-      margin-top: 0.5em;
-      line-height: 1.5;
-      font-family: 'Noto Serif Devanagari', serif;
-    }
-    mark {
-      background: #fff89a;
-      font-weight: bold;
-    }
-    @media (max-width: 600px) {
-      .header-inner {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      #searchBox {
-        width: 100%;
-        margin-top: 0.5em;
-        font-size: 1em;
-      }
-      .tabs {
-        justify-content: flex-start;
-        width: 100%;
-      }
-    }
+    .headword { font-size: 1.3em; font-weight: bold; }
+    .sanskrit { font-size: 1.1em; color: #00796b; margin-top: 0.2em; }
+    .example, .notes { font-size: 0.95em; margin-top: 0.3em; }
+    hr { border: none; border-top: 1px dashed #ccc; margin: 0.5em 0; }
+
+    #upload { margin-top: 0.5em; }
   </style>
 </head>
-  <div id="dictionary"></div>
-  <script>
-    const sheetConfig = {
-      "भैषज्यम्": "https://docs.google.com/spreadsheets/d/1KplgNJU8_JeRnAY0bP0FR2WAB_q8OGxdEviCkewJNA0/gviz/tq?tqx=out:json&sheet=भैषज्यम्",
-      "माहानसम्": "https://docs.google.com/spreadsheets/d/1KplgNJU8_JeRnAY0bP0FR2WAB_q8OGxdEviCkewJNA0/gviz/tq?tqx=out:json&sheet=माहानसम्",
-      "सङ्गीतादिः": "https://docs.google.com/spreadsheets/d/1KplgNJU8_JeRnAY0bP0FR2WAB_q8OGxdEviCkewJNA0/gviz/tq?tqx=out:json&sheet=सङ्गीतादिः"
+<body>
+
+<h1>📘 सारस्वतकोशः – English–Sanskrit Dictionary</h1>
+
+<div class="upload-section">
+  <strong>Upload CSV:</strong> <input type="file" id="upload" accept=".csv" />
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div id="dictionary"></div>
+
+<script>
+const sheetConfig = {
+  "भैषज्यम्": "https://docs.google.com/spreadsheets/d/1Cpr17CVMEdyH5vwbC8qMS4o9_vPmoxTGPSGhDviwTwA/gviz/tq?tqx=out:json&sheet=भैषज्यम्",
+  "माहानसिकम्": "https://docs.google.com/spreadsheets/d/1Cpr17CVMEdyH5vwbC8qMS4o9_vPmoxTGPSGhDviwTwA/gviz/tq?tqx=out:json&sheet=माहानसिकम्"
+};
+
+function renderTabs() {
+  const tabBar = document.getElementById('tabs');
+  Object.keys(sheetConfig).forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.className = 'tab-btn';
+    if (i === 0) btn.classList.add('active');
+    btn.onclick = () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      fetchSheet(sheetConfig[label]);
     };
+    tabBar.appendChild(btn);
+  });
+}
 
-    function renderTabs() {
-      const tabBar = document.getElementById('tabs');
-      Object.keys(sheetConfig).forEach((label, i) => {
-        const btn = document.createElement('button');
-        btn.textContent = label;
-        btn.className = 'tab-btn';
-        if (i === 0) btn.classList.add('active');
-        btn.onclick = () => {
-          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          fetchSheet(sheetConfig[label]);
-        };
-        tabBar.appendChild(btn);
-      });
-    }
-
-    function fetchSheet(url) {
-      fetch(url)
-        .then(res => res.text())
-        .then(text => {
-          const json = JSON.parse(text.match(/{.*}/s)[0]);
-          const rows = json.table.rows;
-          const headers = rows[0].c.slice(2, 6).map(cell => cell?.v?.trim());
-          const data = rows.slice(1).map(row => {
-            const obj = {};
-            row.c.slice(2, 6).forEach((cell, i) => {
-              obj[headers[i]] = cell?.v || "";
-            });
-            return obj;
-          });
-          renderEntries(data);
-        })
-        .catch(err => {
-          console.error("❌ Fetch error:", err);
-          document.getElementById('dictionary').innerHTML =
-            "<p style='color:red;'>❌ Failed to load data. Check sheet visibility or format.</p>";
-        });
-    }
-
-    function renderEntries(data) {
-      const container = document.getElementById('dictionary');
-      container.innerHTML = '';
-      const grouped = {};
-      data.forEach(row => {
-        const key = row["आङ्ग्लपदम्"]?.trim();
-        if (!key) return;
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(row);
-      });
-      for (let headword in grouped) {
-        const group = grouped[headword];
-        const div = document.createElement('div');
-        div.className = 'entry';
-        div.innerHTML = `<div class="headword">${headword}</div>`;
-        group.forEach((e, i) => {
-          const sanskrit = (e["संस्कृतपदम्"] || "").replace(/\n/g, "<br>");
-          const notes = (e["टिप्पणं/पदान्तरङ्गम्"] || "").replace(/\n/g, "<br>");
-          const example = (e["उदाहरणवाक्यम्"] || "").replace(/\n/g, "<br>");
-          div.innerHTML += `
-            <div class="sanskrit">${sanskrit}</div>
-            ${notes ? `<div><b>📘 पदान्तरङ्गम्</b><div class="notes">${notes}</div></div>` : ''}
-            ${example ? `<div><b>📝 उदाहरणम्</b><div class="example"><i>${example}</i></div></div>` : ''}
-            ${i < group.length - 1 ? `<hr>` : ''}
-          `;
-        });
-        container.appendChild(div);
+function fetchSheet(url) {
+  fetch(url)
+    .then(res => res.text())
+    .then(text => {
+      let json;
+      try {
+        json = JSON.parse(text.match(/{.*}/s)[0]);
+      } catch (err) {
+        console.error("❌ JSON parse failed:", err);
+        document.getElementById('dictionary').innerHTML = "<p style='color:red;'>❌ JSON parsing failed.</p>";
+        return;
       }
-    }
 
-    function filterEntries() {
-      const query = document.getElementById('searchBox').value.trim().toLowerCase();
-      const entries = document.querySelectorAll('.entry');
-      entries.forEach(entry => {
-        const rawText = entry.innerText.toLowerCase();
-        const match = rawText.includes(query);
-        entry.style.display = match ? '' : 'none';
-        if (match && query) {
-          ['headword', 'sanskrit', 'example', 'notes'].forEach(cls => {
-            const el = entry.querySelector(`.${cls}`);
-            if (el) {
-              const original = el.textContent;
-              const regex = new RegExp(`(${query})`, 'gi');
-              el.innerHTML = original.replace(regex, '<mark>$1</mark>');
-            }
-          });
-        } else {
-          ['headword', 'sanskrit', 'example', 'notes'].forEach(cls => {
-            const el = entry.querySelector(`.${cls}`);
-            if (el) el.innerHTML = el.textContent;
-          });
-        }
+      let cols = json.table.cols.map(c => c.label);
+      const rawRows = json.table.rows;
+      const firstRow = rawRows[0]?.c?.map(c => c?.v?.trim?.());
+      const isHeaderRow = firstRow?.every(v => typeof v === 'string' && /^[A-Za-z]/.test(v));
+      if ((!cols[0] || cols.every(l => l === "")) && isHeaderRow) {
+        cols = firstRow;
+        rawRows.shift();
+      }
+
+      const rows = rawRows.map(r => {
+        const obj = {};
+        r.c.forEach((cell, i) => {
+          obj[cols[i]] = cell ? cell.v : "";
+        });
+        return obj;
       });
-    }
 
-    function adjustNavbar() {
-      const header = document.getElementById("main-header");
-      header.classList.toggle("scrolled", window.scrollY > 50);
-    }
+      renderEntries(rows);
+    })
+    .catch(err => {
+      console.error("❌ Fetch error:", err);
+      document.getElementById('dictionary').innerHTML = "<p style='color:red;'>❌ Failed to load data. Check sheet visibility or format.</p>";
+    });
+}
 
-    window.addEventListener("scroll", adjustNavbar);
-    renderTabs();
-    fetchSheet(Object.values(sheetConfig)[0]);
-  </script>
+function renderEntries(data) {
+  const container = document.getElementById('dictionary');
+  container.innerHTML = '';
+
+  const grouped = {};
+  data.forEach(entry => {
+    const key = entry.English?.trim();
+    if (!key) return;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(entry);
+  });
+
+  for (let headword in grouped) {
+    const group = grouped[headword];
+    const div = document.createElement('div');
+    div.className = 'entry';
+    div.innerHTML = `<div class="headword">${headword}</div>`;
+    group.forEach((e, i) => {
+      div.innerHTML += `
+        <div class="sanskrit">${e.Sanskrit}</div>
+        ${e.Example ? `<div class="example">📘 ${e.Example}</div>` : ''}
+        ${e.Notes ? `<div class="notes">📝 ${e.Notes}</div>` : ''}
+        ${i < group.length - 1 ? `<hr>` : ''}
+      `;
+    });
+    container.appendChild(div);
+  }
+}
+
+document.getElementById('upload').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  Papa.parse(file, {
+    header: true,
+    dynamicTyping: true,
+    complete: function(results) {
+      const data = results.data;
+      renderEntries(data);
+    }
+  });
+});
+
+renderTabs();
+fetchSheet(Object.values(sheetConfig)[0]); // Load default sheet
+</script>
+
 </body>
 </html>
