@@ -172,9 +172,9 @@ function renderEntries(data) {
     div.className = 'entry';
     div.innerHTML = `<div class="headword">${headword}</div>`;
     group.forEach((e, i) => {
-      const sanskrit = (e["संस्कृतपदम्"] || "").replace(/\\n/g, "<br>");
-      const notes = (e["टिप्पणं/पदान्तरङ्गम्"] || "").replace(/\\n/g, "<br>");
-      const example = (e["उदाहरणवाक्यम्"] || "").replace(/\\n/g, "<br>");
+      const sanskrit = (e["संस्कृतपदम्"] || "").replace(/\n/g, "<br>");
+      const notes = (e["टिप्पणं/पदान्तरङ्गम्"] || "").replace(/\n/g, "<br>");
+      const example = (e["उदाहरणवाक्यम्"] || "").replace(/\n/g, "<br>");
       div.innerHTML += `
         <div class="sanskrit">${sanskrit}</div>
         ${notes ? `<div><b>📘 पदान्तरङ्गम्</b><div class="notes">${notes}</div></div>` : ''}
