@@ -20,24 +20,40 @@
       height: 80px;
       background-color: #FDF6D3;
       display: flex;
-      align-items: center;
+      flex-wrap: wrap;
+      align-items: flex-start;
       gap: 1em;
-      padding: 0 1em;
+      padding: 0.5 1em;
+      flex-direction: row;
+      justify-content: space-between;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       z-index: 1000;
     }
+    header > div {
+      flex: 1;
+    }
+    
     .site-title {
       margin: 0;
       font-size: 1.8em;
       color: #8B4513;
       font-family: 'Noto Serif Devanagari', serif;
     }
+
+    header.compact .site-title {
+      font-size: 1.2em;
+    }
+    
+    header.compact img {
+      height: 40px;
+    }
+
     #searchBox {
       padding: 0.5em 1em;
       font-size: 1em;
       font-family: 'Noto Serif Devanagari', serif;
-      width: 60%;
-      margin: 1em auto;
+      width: 100%;
+      margin: 0.3em 0;
       display: block;
       border: 1px solid #ccc;
       border-radius: 20px;
@@ -46,10 +62,11 @@
     }
     .tabs {
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 0.5em;
       flex-wrap: wrap;
-      margin: 0.5em auto 1em;
+      margin: 0;
+      padding-bottom: 0.3em;
       max-width: 800px;
     }
     .tab-btn {
@@ -103,12 +120,13 @@
 
 <header>
   <a href="https://sarasvatam.org/"><img src="sarasvata_logo.svg" alt="Sarasvata Logo" style="height: 60px;" /></a>
-  <h1 class="site-title">सारस्वतकोशः – व्यावहारिकम्</h1>
+  <div>
+    <h1 class="site-title">सारस्वतकोशः – व्यावहारिकम्</h1>
+    <input type="text" id="searchBox" placeholder="अन्विष्यताम्..." oninput="filterEntries()" />
+    <div class="tabs" id="tabs"></div>
+  </div>
 </header>
 
-<input type="text" id="searchBox" placeholder="अन्विष्यताम्..." oninput="filterEntries()" />
-
-<div class="tabs" id="tabs"></div>
 <div id="dictionary"></div>
 
 <script>
@@ -215,6 +233,11 @@ function filterEntries() {
     });
   });
 }
+
+function adjustNavbar() {
+  document.querySelector("header").classList.toggle("compact", window.scrollY > 50);
+}
+window.addEventListener("scroll", adjustNavbar);
 
 renderTabs();
 fetchSheet(Object.values(sheetConfig)[0]);
