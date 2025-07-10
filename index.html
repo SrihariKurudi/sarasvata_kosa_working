@@ -181,6 +181,11 @@ function renderEntries(data) {
         ${example ? `<div><b>📝 उदाहरणम्</b><div class="example"><i>${example}</i></div></div>` : ''}
         ${i < group.length - 1 ? `<hr>` : ''}
       `;
+      setTimeout(() => {
+    div.querySelectorAll('.headword, .sanskrit, .notes, .example').forEach(el => {
+      el.setAttribute('data-raw', el.innerHTML);
+    });
+  }, 0);
     });
     container.appendChild(div);
   }
@@ -189,14 +194,17 @@ function renderEntries(data) {
 function filterEntries() {
   const query = document.getElementById('searchBox').value.trim().toLowerCase();
   const entries = document.querySelectorAll('.entry');
+
   entries.forEach(entry => {
     const rawText = entry.innerText.toLowerCase();
     const match = rawText.includes(query);
     entry.style.display = match ? '' : 'none';
+
     ['headword', 'sanskrit', 'example', 'notes'].forEach(cls => {
       const el = entry.querySelector(`.${cls}`);
       if (el) {
-        const original = el.textContent;
+        // get the original HTML back with line breaks intact
+        const original = el.getAttribute('data-raw') || el.innerHTML;
         if (match && query) {
           const regex = new RegExp(`(${query})`, 'gi');
           el.innerHTML = original.replace(regex, '<mark>$1</mark>');
