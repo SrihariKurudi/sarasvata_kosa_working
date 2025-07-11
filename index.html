@@ -147,7 +147,9 @@
 
   <div class="header-right">
     <input type="text" id="searchBox" placeholder="अन्विष्यताम्..." oninput="filterEntries()" />
-  </div>
+    <!-- Transliterate & Reset buttons -->
+    <button id="btn-to-tamil" title="Show in Tamil (Ext.)">த⮕</button>
+    <button id="btn-to-dev"  title="Back to Devanagari">दे⮕</button>  </div>
 </header>
 
 <div id="dictionary"></div>
@@ -229,6 +231,10 @@ function renderEntries(data) {
   }, 0);
     });
     container.appendChild(div);
+    // cache raw Sanskrit HTML so we can restore later
+    div.querySelectorAll('.sanskrit').forEach(el => {
+      el.dataset.dev = el.innerHTML;   // keep original Devanagari
+    });
   }
 }
 
@@ -264,7 +270,45 @@ window.addEventListener("scroll", adjustNavbar);
 
 renderTabs();
 fetchSheet(Object.values(sheetConfig)[0]);
+
+/* helper: convert one string synchronously */
+function akmConvert(src, tgt, txt) {
+  /* Aksharamukha’s API returns a promise */
+  return aksharamukha.convert({
+      sourceScript : src,
+      targetScript : tgt,
+      text         : txt,
+      nativize     : true
+  });
+}
+
+/* 1️⃣  Devanagari → Tamil (Extended) for every .sanskrit span */
+async function transliterateToTamil() {
+  const els = document.querySelectorAll('.sanskrit');
+  for (const el of els) {
+    // store original once (already done in renderEntries – safe double‑check)
+    if (!el.dataset.dev) el.dataset.dev = el.innerHTML;
+    // plugin needs plain text, strip <br> first
+    const txt = el.innerText;
+    const tamil = await akmConvert('Devanagari', 'Tamil (Extended)', txt);
+    el.innerHTML = tamil.replace(/\n/g, '<br>');
+  }
+}
+
+/* 2️⃣  Reset back to cached Devanagari */
+function restoreDevanagari() {
+  document.querySelectorAll('.sanskrit').forEach(el => {
+    if (el.dataset.dev) el.innerHTML = el.dataset.dev;
+  });
+}
+
+/* 3️⃣  Wire buttons */
+document.getElementById('btn-to-tamil').addEventListener('click', transliterateToTamil);
+document.getElementById('btn-to-dev').addEventListener('click',   restoreDevanagari);
 </script>
+
+<!-- Aksharamukha Web‑plugin  (v4) -->
+<script src="https://cdn.jsdelivr.net/gh/virtualvinodh/aksharamukha-web-plugin/aksharamukha-v4.js"></script>
 
 </body>
 </html>
