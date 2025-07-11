@@ -265,6 +265,17 @@ window.addEventListener("scroll", adjustNavbar);
 renderTabs();
 fetchSheet(Object.values(sheetConfig)[0]);
 
+/* helper: convert one string synchronously */
+function akmConvert(src, tgt, txt) {
+  /* Aksharamukha’s API returns a promise */
+  return aksharamukha.convert({
+      sourceScript : src,
+      targetScript : tgt,
+      text         : txt,
+      nativize     : true
+  });
+}
+
 </script>
 <!-- <script>
   window.aksharamukha = { config: { elements: ['.sanskrit'] } };
