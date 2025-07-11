@@ -228,6 +228,10 @@ function renderEntries(data) {
   }, 0);
     });
     container.appendChild(div);
+    // cache raw Sanskrit HTML so we can restore later
+    div.querySelectorAll('.sanskrit').forEach(el => {
+      el.dataset.dev = el.innerHTML;   // keep original Devanagari
+    });
     
   }
 }
@@ -273,6 +277,25 @@ function akmConvert(src, tgt, txt) {
       targetScript : tgt,
       text         : txt,
       nativize     : true
+  });
+}
+/* 1️⃣  Devanagari → Tamil (Extended) for every .sanskrit span */
+async function transliterateToTamil() {
+  const els = document.querySelectorAll('.sanskrit');
+  for (const el of els) {
+    // store original once (already done in renderEntries – safe double‑check)
+    if (!el.dataset.dev) el.dataset.dev = el.innerHTML;
+    // plugin needs plain text, strip <br> first
+    const txt = el.innerText;
+    const tamil = await akmConvert('Devanagari', 'Tamil (Extended)', txt);
+    el.innerHTML = tamil.replace(/\n/g, '<br>');
+  }
+}
+
+/* 2️⃣  Reset back to cached Devanagari */
+function restoreDevanagari() {
+  document.querySelectorAll('.sanskrit').forEach(el => {
+    if (el.dataset.dev) el.innerHTML = el.dataset.dev;
   });
 }
 
