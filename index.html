@@ -227,12 +227,7 @@ function renderEntries(data) {
     });
   }, 0);
     });
-    container.appendChild(div);
-    // cache raw Sanskrit HTML so we can restore later
-    div.querySelectorAll('.sanskrit').forEach(el => {
-      el.dataset.dev = el.innerHTML;   // keep original Devanagari
-    });
-    
+    container.appendChild(div);    
   }
 }
 
@@ -268,44 +263,8 @@ window.addEventListener("scroll", adjustNavbar);
 
 renderTabs();
 fetchSheet(Object.values(sheetConfig)[0]);
-
-/* helper: convert one string synchronously */
-function akmConvert(src, tgt, txt) {
-  /* Aksharamukha’s API returns a promise */
-  return aksharamukha.convert({
-      sourceScript : src,
-      targetScript : tgt,
-      text         : txt,
-      nativize     : true
-  });
-}
-/* 1️⃣  Devanagari → Tamil (Extended) for every .sanskrit span */
-async function transliterateToTamil() {
-  const els = document.querySelectorAll('.sanskrit');
-  for (const el of els) {
-    // store original once (already done in renderEntries – safe double‑check)
-    if (!el.dataset.dev) el.dataset.dev = el.innerHTML;
-    // plugin needs plain text, strip <br> first
-    const txt = el.innerText;
-    const tamil = await akmConvert('Devanagari', 'Tamil (Extended)', txt);
-    el.innerHTML = tamil.replace(/\n/g, '<br>');
-  }
-}
-
-/* 2️⃣  Reset back to cached Devanagari */
-function restoreDevanagari() {
-  document.querySelectorAll('.sanskrit').forEach(el => {
-    if (el.dataset.dev) el.innerHTML = el.dataset.dev;
-  });
-}
-
 </script>
-<!-- <script>
-  window.aksharamukha = { config: { elements: ['.sanskrit'] } };
-</script> -->
-
-<!-- Aksharamukha Web‑plugin  (v4) -->
-<script src="https://cdn.jsdelivr.net/gh/virtualvinodh/aksharamukha/aksharamukha-web-plugin/aksharamukha-v3.js?"></script>
-
+<!-- Aksharamukha Web‑plugin  (v4)
+<script src="https://cdn.jsdelivr.net/gh/virtualvinodh/aksharamukha/aksharamukha-web-plugin/aksharamukha-v3.js?source=scriptidentifier"></script> -->
 </body>
 </html>
