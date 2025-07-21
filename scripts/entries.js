@@ -22,11 +22,18 @@ export function renderEntries(data) {
       const sanskrit = (row["संस्कृतपदम्"] || '').replace(/\n/g, '<br>');
       const notes    = (row["टिप्पणं/पदान्तरङ्गम्"] || '').replace(/\n/g, '<br>');
       const example  = (row["उदाहरणवाक्यम्"]      || '').replace(/\n/g, '<br>');
+      const image = (row["चित्रम्"] || "").trim();
+      const imageHTML = image.includes("<img") ? `<div class="entry-image-wrapper">${image}</div>` : "";
 
       div.innerHTML += `
-        <div class="sanskrit">${sanskrit}</div>
-        ${notes   ? `<div><b>📘 पदान्तरङ्गम्</b><div class="notes">${notes}</div></div>` : ''}
-        ${example ? `<div><b>📝 उदाहरणम्</b><div class="example"><i>${example}</i></div></div>` : ''}
+        <div class="entry-content">
+          <div class="entry-text">
+            <div class="sanskrit">${sanskrit}</div>
+            ${notes ? `<div><b>📘 पदान्तरङ्गम्</b><div class="notes">${notes}</div></div>` : ''}
+            ${example ? `<div><b>📝 उदाहरणम्</b><div class="example"><i>${example}</i></div></div>` : ''}
+          </div>
+          ${imageHTML}
+        </div>
         ${i < group.length - 1 ? '<hr>' : ''}
       `;
     });
