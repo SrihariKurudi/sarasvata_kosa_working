@@ -24,7 +24,7 @@ export function renderEntries(data) {
       const example  = (row["उदाहरणवाक्यम्"]      || '').replace(/\n/g, '<br>');
 
       div.innerHTML += `
-        <div class="sanskrit">${samskrta}</div>
+        <div class="sanskrit">${sanskrit}</div>
         ${notes   ? `<div><b>📘 पदान्तरङ्गम्</b><div class="notes">${notes}</div></div>` : ''}
         ${example ? `<div><b>📝 उदाहरणम्</b><div class="example"><i>${example}</i></div></div>` : ''}
         ${i < group.length - 1 ? '<hr>' : ''}
